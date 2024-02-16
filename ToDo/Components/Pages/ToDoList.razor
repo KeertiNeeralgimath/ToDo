@@ -1,0 +1,117 @@
+﻿@page "/todolist"
+@using System.Collections.Generic
+@using System.Linq
+
+<h3>To-Do List</h3>
+
+@if (toDoItems.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Task Description</th>
+                <th>Due Date</th>
+                <th>Completed Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in toDoItems)
+            {
+                <tr>
+                    <td>@item.TaskDescription</td>
+                    <td>@item.DueDate.ToShortDateString()</td>
+                    <td>@(item.CompletedDate?.ToShortDateString() ?? "Not Completed")</td>
+                    <td>@(item.IsCompleted ? "Completed" : (item.IsLate ? "Late" : "Pending"))</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" @onclick="() => EditItem(item)">Edit</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteItem(item)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No to-do items.</p>
+}
+
+<button class="btn btn-success" @onclick="AddItem">Add New</button>
+
+@if (showModal)
+{
+    <div class="modal">
+        <div class="modal-content">
+            <span class="close" @onclick="CloseModal">&times;</span>
+            <h4>@(isEditing ? "Edit" : "Add New") To-Do Item</h4>
+            <div>
+                <label>Task Description:</label>
+                <input type="text" @bind="currentItem.TaskDescription" />
+            </div>
+            <div>
+                <label>Due Date:</label>
+                <input type="date" @bind="currentItem.DueDate" />
+            </div>
+            <button class="btn btn-primary" @onclick="SaveItem">
+                @if (isEditing)
+                {
+                    <span>Save Changes</span>
+                }
+                else
+                {
+                    <span>Add Item</span>
+                }
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    List<ToDoItem> toDoItems = new List<ToDoItem>
+    {
+        new ToDoItem { TaskDescription = "Cooking", DueDate = DateTime.Now.AddDays(1) },
+        new ToDoItem { TaskDescription = "Laundry", DueDate = DateTime.Now.AddDays(-1) },
+        new ToDoItem { TaskDescription = "Grocery Shopping", DueDate = DateTime.Now.AddDays(-5), CompletedDate = DateTime.Now.AddDays(-3) }
+    };
+
+    ToDoItem currentItem = new ToDoItem();
+    bool showModal = false;
+    bool isEditing = false;
+
+    void AddItem()
+    {
+        currentItem = new ToDoItem();
+        showModal = true;
+        isEditing = false;
+    }
+
+    void EditItem(ToDoItem item)
+    {
+        currentItem = item;
+        showModal = true;
+        isEditing = true;
+    }
+
+    void SaveItem()
+    {
+        if (!isEditing)
+        {
+            toDoItems.Add(currentItem);
+        }
+        showModal = false;
+        currentItem = new ToDoItem();
+    }
+
+    void DeleteItem(ToDoItem item)
+    {
+        toDoItems.Remove(item);
+        showModal = false;
+    }
+
+    void CloseModal()
+    {
+        showModal = false;
+    }
+}
